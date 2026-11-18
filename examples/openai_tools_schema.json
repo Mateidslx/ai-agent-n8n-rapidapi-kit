@@ -1,0 +1,95 @@
+[
+  {
+    "type": "function",
+    "function": {
+      "name": "web_to_markdown",
+      "description": "Fetch any public webpage and convert it into clean LLM-ready Markdown with metadata and links.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string",
+            "description": "Public HTTP/HTTPS webpage URL"
+          },
+          "include_links": {
+            "type": "boolean",
+            "description": "Whether to append extracted hyperlinks"
+          }
+        },
+        "required": ["url"]
+      }
+    }
+  },
+  {
+    "type": "function",
+    "function": {
+      "name": "parse_rss_feed",
+      "description": "Parse any public RSS or Atom feed URL into clean structured JSON articles.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string",
+            "description": "Public RSS or Atom feed URL"
+          },
+          "limit": {
+            "type": "integer",
+            "description": "Max items to return (1-50)"
+          }
+        },
+        "required": ["url"]
+      }
+    }
+  },
+  {
+    "type": "function",
+    "function": {
+      "name": "validate_b2b_email",
+      "description": "Validate an email address for syntax, live DNS MX records, disposable domain detection, and corporate B2B classification.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "description": "Email address to validate"
+          }
+        },
+        "required": ["email"]
+      }
+    }
+  },
+  {
+    "type": "function",
+    "function": {
+      "name": "enrich_company_domain",
+      "description": "Extract public emails, phone numbers, social links, and detected tech stack from a company website.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string",
+            "description": "Company website URL or domain"
+          }
+        },
+        "required": ["url"]
+      }
+    }
+  },
+  {
+    "type": "function",
+    "function": {
+      "name": "audit_domain_dns_ssl",
+      "description": "Inspect a domain's DNS A/MX records, SPF/DMARC email security posture, and SSL certificate expiration.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "domain": {
+            "type": "string",
+            "description": "Domain name (e.g. stripe.com)"
+          }
+        },
+        "required": ["domain"]
+      }
+    }
+  }
+]

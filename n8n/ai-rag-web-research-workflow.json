@@ -1,0 +1,138 @@
+{
+  "name": "AI RAG Web Scraper & Chunker (RapidAPI)",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "manual-trigger-1",
+      "name": "Manual Trigger",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [220, 300]
+    },
+    {
+      "parameters": {
+        "values": {
+          "string": [
+            {
+              "name": "target_url",
+              "value": "https://example.com"
+            },
+            {
+              "name": "rapidapi_key",
+              "value": "YOUR_RAPIDAPI_KEY"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "set-config-1",
+      "name": "Set Target URL & API Key",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 2,
+      "position": [440, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://ai-web-scraper-markdown-rag.p.rapidapi.com/v1/web/extract-markdown",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "x-rapidapi-key",
+              "value": "={{ $json.rapidapi_key }}"
+            },
+            {
+              "name": "x-rapidapi-host",
+              "value": "ai-web-scraper-markdown-rag.p.rapidapi.com"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ url: $json.target_url, include_links: true }) }}",
+        "options": {}
+      },
+      "id": "web-to-markdown-1",
+      "name": "Web to LLM Markdown",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [680, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://ai-web-scraper-markdown-rag.p.rapidapi.com/v1/ai/chunk-for-rag",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "x-rapidapi-key",
+              "value": "={{ $('Set Target URL & API Key').item.json.rapidapi_key }}"
+            },
+            {
+              "name": "x-rapidapi-host",
+              "value": "ai-web-scraper-markdown-rag.p.rapidapi.com"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ text: $json.markdown, chunk_size_words: 200, overlap_words: 30 }) }}",
+        "options": {}
+      },
+      "id": "rag-chunker-1",
+      "name": "Chunk Markdown for RAG",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [940, 300]
+    }
+  ],
+  "connections": {
+    "Manual Trigger": {
+      "main": [
+        [
+          {
+            "node": "Set Target URL & API Key",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set Target URL & API Key": {
+      "main": [
+        [
+          {
+            "node": "Web to LLM Markdown",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Web to LLM Markdown": {
+      "main": [
+        [
+          {
+            "node": "Chunk Markdown for RAG",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

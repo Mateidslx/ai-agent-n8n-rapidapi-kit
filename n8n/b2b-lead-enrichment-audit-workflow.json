@@ -1,0 +1,179 @@
+{
+  "name": "B2B Lead Email Verification & Domain Enrichment (RapidAPI)",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "manual-trigger-b2b",
+      "name": "Manual Trigger",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [220, 300]
+    },
+    {
+      "parameters": {
+        "values": {
+          "string": [
+            {
+              "name": "prospect_email",
+              "value": "contact@stripe.com"
+            },
+            {
+              "name": "prospect_domain",
+              "value": "stripe.com"
+            },
+            {
+              "name": "rapidapi_key",
+              "value": "YOUR_RAPIDAPI_KEY"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "set-lead-input",
+      "name": "Set Prospect Input & API Key",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 2,
+      "position": [440, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://b2b-domain-lead-enrichment-engine.p.rapidapi.com/v2/b2b/validate-email",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "x-rapidapi-key",
+              "value": "={{ $json.rapidapi_key }}"
+            },
+            {
+              "name": "x-rapidapi-host",
+              "value": "b2b-domain-lead-enrichment-engine.p.rapidapi.com"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ email: $json.prospect_email }) }}",
+        "options": {}
+      },
+      "id": "validate-email-node",
+      "name": "Validate Email & MX",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [680, 220]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://b2b-domain-lead-enrichment-engine.p.rapidapi.com/v2/b2b/enrich-company",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "x-rapidapi-key",
+              "value": "={{ $('Set Prospect Input & API Key').item.json.rapidapi_key }}"
+            },
+            {
+              "name": "x-rapidapi-host",
+              "value": "b2b-domain-lead-enrichment-engine.p.rapidapi.com"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ url: 'https://' + $('Set Prospect Input & API Key').item.json.prospect_domain }) }}",
+        "options": {}
+      },
+      "id": "enrich-company-node",
+      "name": "Enrich Company & Tech Stack",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [940, 220]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://b2b-domain-lead-enrichment-engine.p.rapidapi.com/v2/b2b/domain-dns-ssl",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "x-rapidapi-key",
+              "value": "={{ $('Set Prospect Input & API Key').item.json.rapidapi_key }}"
+            },
+            {
+              "name": "x-rapidapi-host",
+              "value": "b2b-domain-lead-enrichment-engine.p.rapidapi.com"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ domain: $('Set Prospect Input & API Key').item.json.prospect_domain }) }}",
+        "options": {}
+      },
+      "id": "domain-dns-ssl-node",
+      "name": "Audit Domain DNS, SPF/DMARC & SSL",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [940, 400]
+    }
+  ],
+  "connections": {
+    "Manual Trigger": {
+      "main": [
+        [
+          {
+            "node": "Set Prospect Input & API Key",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set Prospect Input & API Key": {
+      "main": [
+        [
+          {
+            "node": "Validate Email & MX",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validate Email & MX": {
+      "main": [
+        [
+          {
+            "node": "Enrich Company & Tech Stack",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Audit Domain DNS, SPF/DMARC & SSL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  }
+}
